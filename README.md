@@ -1,6 +1,6 @@
-# Python Study Repository
+# SQA AI Study Repository
 
-This repository contains a variety of Python modules and scripts for testing and learning purposes.
+A multi-language Software Quality Assurance (SQA) automation study repository with full phased projects in **Python**, **Java**, **Golang**, and **C#**, progressing from zero to expert level across unit, integration, API, end-to-end, security, and performance testing.
 
 ## 📁 Repository Structure
 <details>
@@ -87,6 +87,9 @@ Professional parametric CAD system for designing, building, and flying FPV drone
 ### Language Learning
 - **[English Learning](./src/learning-english/README.md)**: Flashcard application for vocabulary building
 - **[Arabic Learning](./src/learning-arabic/README.md)**: Arabic language learning tools
+
+### SQA Automation — Zero to Expert (Multi-Language)
+- **[SQA Automation - Zero to Expert](./src/sqa-automation/README.md)**: Comprehensive SQA automation learning path across **Python, Java, Golang, and C#** covering 6 progressive levels — from first test to full test strategy, security testing, and performance testing
 
 ### Automation & DevOps Learning
 - **[Shell Automation - Zero to Expert](./src/learning-shell-automation/README.md)**: Comprehensive learning path for shell scripting (Bash, PowerShell, Batch, Python), automation, DevOps, and CI/CD across 6 progressive levels from beginner to master

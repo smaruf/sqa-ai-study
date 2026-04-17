@@ -1,0 +1,184 @@
+# Example CI/CD pipeline for SQA automation tests
+# .github/workflows/sqa-pipeline.yml
+#
+# This workflow runs the full test pipeline across all four languages:
+#   1. Python (pytest)
+#   2. Java (Maven + JUnit 5)
+#   3. Go (go test)
+#   4. C# (dotnet test)
+#
+# Security scans (Bandit, gosec, OWASP Dependency-Check) and
+# performance tests (Locust) run as separate jobs after unit tests pass.
+
+name: SQA Automation Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/sqa-automation/**'
+  pull_request:
+    paths:
+      - 'src/sqa-automation/**'
+
+env:
+  SQA_DIR: src/sqa-automation
+
+# ── Stage 1: Fast unit/integration tests ─────────────────────────────────────
+
+jobs:
+  python-tests:
+    name: Python (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install pytest pytest-cov pytest-mock pytest-bdd fastapi httpx
+
+      - name: Run unit & integration tests
+        working-directory: ${{ env.SQA_DIR }}
+        run: |
+          pytest level-0-beginner/python level-1-basic/python level-2-intermediate/python \
+                 -v --cov=. --cov-report=xml --cov-report=term-missing
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-coverage
+          path: ${{ env.SQA_DIR }}/coverage.xml
+
+  java-tests:
+    name: Java (Maven + JUnit 5)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Run tests
+        working-directory: ${{ env.SQA_DIR }}
+        run: mvn --batch-mode test -pl level-0-beginner/java,level-1-basic/java
+
+      - name: Upload Surefire reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-test-reports
+          path: '**/target/surefire-reports/*.xml'
+
+  go-tests:
+    name: Go (go test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Run tests with coverage
+        working-directory: ${{ env.SQA_DIR }}
+        run: |
+          go test -v -coverprofile=coverage.out \
+            ./level-0-beginner/golang/... \
+            ./level-1-basic/golang/... \
+            ./level-2-intermediate/golang/...
+          go tool cover -html=coverage.out -o coverage.html
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-coverage
+          path: ${{ env.SQA_DIR }}/coverage.html
+
+  csharp-tests:
+    name: C# (dotnet test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore and test
+        working-directory: ${{ env.SQA_DIR }}
+        run: |
+          dotnet test --configuration Release \
+                      --collect:"XPlat Code Coverage" \
+                      --results-directory TestResults \
+                      --verbosity normal
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: csharp-test-results
+          path: ${{ env.SQA_DIR }}/TestResults
+
+# ── Stage 2: Security scans (run after unit tests pass) ──────────────────────
+
+  python-security:
+    name: Python Security Scan (Bandit)
+    needs: python-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install bandit
+      - name: Run Bandit
+        working-directory: ${{ env.SQA_DIR }}
+        run: bandit -r . -ll --exit-zero
+
+  go-security:
+    name: Go Security Scan (gosec)
+    needs: go-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Install gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+      - name: Run gosec
+        working-directory: ${{ env.SQA_DIR }}
+        run: gosec ./... || true
+
+# ── Stage 3: Performance tests (manual trigger or scheduled) ─────────────────
+
+  python-performance:
+    name: Python Load Test (Locust)
+    needs: [python-tests, python-security]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install locust fastapi uvicorn
+      - name: Run Locust headless (60s, 10 users)
+        working-directory: ${{ env.SQA_DIR }}/level-4-expert/python
+        run: |
+          locust -f 02_performance_locust.py \
+                 --headless \
+                 --users 10 \
+                 --spawn-rate 2 \
+                 --run-time 60s \
+                 --host http://localhost:8000 \
+                 --html locust-report.html || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: locust-report
+          path: ${{ env.SQA_DIR }}/level-4-expert/python/locust-report.html

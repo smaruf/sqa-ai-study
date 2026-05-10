@@ -6,14 +6,17 @@ A multi-language **Software Quality Assurance (SQA) automation** study repositor
 
 ```
 sqa-ai-study/
-└── src/
-    └── sqa-automation/        # SQA automation learning path (6 levels)
-        ├── level-0-beginner/
-        ├── level-1-basic/
-        ├── level-2-intermediate/
-        ├── level-3-advanced/
-        ├── level-4-expert/
-        └── level-5-master/
+├── src/
+│   ├── sqa-automation/        # SQA automation learning path (6 levels)
+│   │   ├── level-0-beginner/
+│   │   ├── level-1-basic/
+│   │   ├── level-2-intermediate/
+│   │   ├── level-3-advanced/
+│   │   ├── level-4-expert/
+│   │   └── level-5-master/
+│   └── local-llm-for-sqa/    # Run local LLMs (Ollama + Qwen3) for SQA tasks
+│       ├── README.md
+│       └── python/
 ```
 
 ## 🚀 SQA Automation — Zero to Expert
@@ -30,6 +33,32 @@ A comprehensive, multi-language SQA automation guide covering 6 progressive leve
 | [Level 3](./src/sqa-automation/level-3-advanced/README.md) | Advanced | End-to-end testing, BDD, CI/CD integration |
 | [Level 4](./src/sqa-automation/level-4-expert/README.md) | Expert | Security testing, performance & load testing |
 | [Level 5](./src/sqa-automation/level-5-master/README.md) | Master | Full test strategy, AI-assisted testing, observability |
+
+---
+
+## 🤖 Local LLM for SQA
+
+### [Local LLM for SQA](./src/local-llm-for-sqa/README.md)
+
+Run AI models **privately on your laptop** using [Ollama](https://ollama.com/) and apply them to everyday SQA tasks — test case generation, bug triage, test data creation, and more. No cloud account, no cost, no data leaving your machine.
+
+Focused on [**Qwen3**](https://github.com/QwenLM/Qwen3) — the recommended open-weight model for SQA work — with its unique **thinking mode** that produces auditable chain-of-thought reasoning before every answer.
+
+| File | Topic |
+|------|-------|
+| `python/01_llm_client.py` | Ollama HTTP client with contract tests |
+| `python/02_test_case_generator.py` | Test case generation with schema validation |
+| `python/03_bug_triage.py` | Bug severity classification with consistency gates |
+| `python/04_test_data_factory.py` | Test data generation with PII guards |
+| `python/05_prompt_safety.py` | Prompt injection prevention (OWASP LLM01) |
+| `python/06_qwen3_thinking_mode.py` | Qwen3 thinking/non-thinking modes for SQA |
+
+```bash
+# Run all unit tests (no Ollama needed — fully mocked)
+pip install pytest pytest-mock requests
+cd src/local-llm-for-sqa
+pytest -m "not integration" -v
+```
 
 ## 🛠️ Getting Started
 

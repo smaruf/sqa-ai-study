@@ -71,6 +71,103 @@ curl http://localhost:11434/api/tags
 | `python/03_bug_triage.py` | Bug severity classification | Consistency, quality gates |
 | `python/04_test_data_factory.py` | Structured test data generation | Schema validation, edge cases |
 | `python/05_prompt_safety.py` | Prompt injection prevention | Security, input sanitisation |
+| `python/06_qwen3_thinking_mode.py` | Qwen3 thinking/non-thinking modes | Deep reasoning, audit evidence |
+
+---
+
+## Qwen3 — The Recommended Model for SQA Tasks
+
+[**Qwen3**](https://github.com/QwenLM/Qwen3) (by Alibaba Cloud / QwenLM) is the top open-weight model for local SQA work on a laptop. Its standout feature for SQA is **thinking mode** — a built-in chain-of-thought that produces auditable reasoning before every answer.
+
+### Why Qwen3 for SQA?
+
+| Capability | SQA Application |
+|-----------|----------------|
+| **Thinking mode** (`<think>…</think>`) | Root cause analysis, coverage gap detection — the model shows its reasoning step-by-step |
+| **Non-thinking mode** (`/no_think`) | Fast bug triage, quick test result classification — lower latency |
+| **100+ languages** | Multilingual test artefacts, requirements in non-English |
+| **Strong coding ability** | Generate test scripts, review test code, suggest refactors |
+| **Tool use / function calling** | Agentic SQA pipelines, CI trigger decisions |
+| **256K token context** (cloud/server) | Analyse large codebases, full test suite logs |
+
+### Qwen3 Models for Laptop CPU (via Ollama)
+
+| Ollama tag | Active params | RAM needed | Tokens/s* | Recommended for |
+|-----------|--------------|-----------|-----------|----------------|
+| `qwen3:4b` | 4 B | ~6 GB | 10–20 | Quick classification, fast drafts |
+| `qwen3:8b` | 8 B | ~10 GB | 4–10 | Best balance — most SQA tasks |
+| `qwen3:14b` | 14 B | ~18 GB | 2–5 | Deeper analysis (needs 32 GB RAM) |
+| `qwen3:30b-a3b` | 3 B active / 30 B total | ~22 GB | 2–4 | MoE — high quality, high RAM cost |
+
+\* CPU-only estimates on Intel Core Ultra. Always use Q4_K_M quantized builds (default in Ollama).
+
+### Setup for Qwen3 on Your Laptop
+
+```bash
+# Install and start Ollama (https://ollama.com/download)
+ollama serve
+
+# Pull Qwen3 — start with 4b if RAM is tight, 8b for better SQA quality
+ollama pull qwen3:4b
+ollama pull qwen3:8b
+
+# Set context window for long test artefacts (in Ollama CLI session)
+/set parameter num_ctx 40960
+/set parameter num_predict 32768
+
+# Enable thinking mode (default for most Qwen3 models)
+/set think
+
+# Disable thinking for fast tasks
+/set nothink
+```
+
+### Thinking vs Non-thinking Mode — When to Use Each
+
+```
+SQA Task                           Mode            Why
+─────────────────────────────────────────────────────────────────────
+Root cause analysis                Thinking ✅     Needs step-by-step reasoning
+Coverage gap detection             Thinking ✅     Requires systematic analysis
+Test strategy planning             Thinking ✅     Complex multi-factor decisions
+Bug triage (severity)              Non-thinking    Speed matters; few labels
+Test result classification         Non-thinking    Single label; deterministic
+Quick test case title generation   Non-thinking    Low complexity, fast iteration
+```
+
+### Thinking Mode and SQA Auditability
+
+The `<think>…</think>` block is not just a quirk — it is **audit evidence**.  
+Store it alongside the final answer in your test reports or bug tracker:
+
+```
+Bug #1234 — AI Triage Decision
+  Severity: High
+  Reasoning (AI thinking trace):
+    "The stack trace shows a null pointer in PaymentService.charge() on line 89.
+     This is called from the main checkout flow — all users are affected.
+     No workaround exists. This classifies as High."
+  Final answer: High severity — assign to payment team, fix before release.
+```
+
+This makes AI-assisted SQA decisions **explainable and reviewable** by humans.
+
+### OpenAI-Compatible API (Ollama v0.9.0+)
+
+Ollama exposes an OpenAI-compatible endpoint at `http://localhost:11434/v1/`.  
+You can use the `openai` Python SDK directly with Qwen3:
+
+```python
+import openai
+
+client = openai.OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
+response = client.chat.completions.create(
+    model="qwen3:8b",
+    messages=[{"role": "user", "content": "Generate 3 test cases for a login form."}],
+    max_tokens=2048,
+)
+print(response.choices[0].message.content)
+```
 
 ---
 

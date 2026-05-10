@@ -29,7 +29,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from python.01_llm_client import GenerateRequest, GenerateResponse, OllamaClient
+from llm_client import GenerateRequest, GenerateResponse, OllamaClient
 
 
 # ─── Domain Types ─────────────────────────────────────────────────────────────

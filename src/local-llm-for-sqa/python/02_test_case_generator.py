@@ -28,7 +28,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from python.01_llm_client import (  # noqa: E402 — relative import within project
+from llm_client import (  # noqa: E402 — relative import within project
     GenerateRequest,
     GenerateResponse,
     OllamaClient,
@@ -352,7 +352,7 @@ class TestTestCaseGenerator:
     def test_raises_on_non_json_response(self):
         client = _make_mock_client("Sorry, I cannot help with that.")
         gen = TestCaseGenerator(client=client)
-        with pytest.raises(ValueError, match="non-JSON"):
+        with pytest.raises(ValueError, match="No JSON array"):
             gen.generate(SAMPLE_USER_STORY, min_cases=1)
 
     def test_raises_when_llm_returns_object_not_array(self):

@@ -2,7 +2,7 @@
 
 From Apple’s specs and early reviews, it uses the A18 Pro chip with Apple Neural Engine support and Apple Intelligence integration. ([Apple][1])
 
-For your earlier idea (distributed AI / mesh / local inference):
+For your earlier idea (distributed AI/mesh/local-inference):
 
 * A single MacBook Neo is **far more practical** than a microcontroller mesh
 * But it is still much weaker than an NVIDIA GPU workstation
